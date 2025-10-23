@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment History</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      background: #f5f6fa;
+      color: #2c3e50;
+      padding-bottom: 70px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      background: #1f2a44;
+      color: white;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 1.5rem;
+      margin: 1.5rem auto;
+      width: 90%;
+      max-width: 600px;
+    }
+    .card h3 {
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+    .history-item {
+      border-bottom: 1px solid #eee;
+      padding: 0.8rem 0;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item b { font-size: 1rem; }
+    .history-item small { color: #7f8c8d; margin-left:5px; }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #1f2a44;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0.5rem 0;
+      box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+    }
+    .bottom-nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 0.8rem;
+      text-align: center;
+      flex: 1;
+    }
+    .bottom-nav i {
+      display: block;
+      font-size: 1.2rem;
+      margin-bottom: 4px;
+    }
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 2px 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-left: 8px;
+    }
+    .delete-btn:hover { opacity: 0.8; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span>Appointment History</span>
+  </div>
+
+  <div class="card" id="historyContainer">
+    <h3>Completed Requests</h3>
+    <div id="historyList"></div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="/T-dashboard.html"><i class="fas fa-home"></i>Home</a>
+    <a href="/T-history.html"><i class="fas fa-clock"></i>History</a>
+    <a href="/T-profile.html"><i class="fas fa-user"></i>Profile</a>
+  </div>
+
+<script>
+const loggedInTeacher = JSON.parse(localStorage.getItem("loggedInTeacher"));
+if(!loggedInTeacher){
+  alert("No teacher logged in. Please login first.");
+  window.location.href="/index.html";
+}
+
+const historyList = document.getElementById("historyList");
+
+function loadHistory() {
+  const doneAppointments = JSON.parse(localStorage.getItem("doneRequests")) || [];
+  const myHistory = doneAppointments.filter(d => d.teacher === loggedInTeacher.name);
+
+  historyList.innerHTML = myHistory.length ? "" : "<p>No completed requests yet.</p>";
+
+  myHistory.forEach((app) => {
+    const div = document.createElement("div");
+    div.className = "history-item";
+    div.innerHTML = `
+      <b>${app.studentName} - ${app.reason}</b>
+      <button class="delete-btn">Delete</button><br>
+      <small>Date: ${app.bookedTime}</small>
+    `;
+    div.querySelector(".delete-btn").addEventListener("click", () => {
+      if (confirm("Are you sure you want to delete this entry?")) {
+        doneAppointments.splice(doneAppointments.indexOf(app), 1);
+        localStorage.setItem("doneRequests", JSON.stringify(doneAppointments));
+        loadHistory();
+      }
+    });
+    historyList.appendChild(div);
+  });
+}
+
+loadHistory();
+setInterval(loadHistory, 5000);
+</script>
+</body>
+</html>

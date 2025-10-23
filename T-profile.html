@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Profile</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --navy:#1f2a44;
+  --background:#f5f6fa;
+  --card-bg:#fff;
+  --text-dark:#2c3e50;
+  --success:#27ae60;
+  --shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+body {
+  margin:0;
+  font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+  background:var(--background);
+  color:var(--text-dark);
+  padding-bottom:70px;
+}
+.header {
+  display:flex;
+  align-items:center;
+  padding:1rem;
+  background:var(--navy);
+  color:white;
+  font-weight:bold;
+  font-size:1.2rem;
+}
+.card {
+  background:var(--card-bg);
+  border-radius:12px;
+  box-shadow:var(--shadow);
+  padding:1.5rem;
+  margin:1.5rem auto;
+  width:90%;
+  max-width:550px;
+  text-align:center;
+}
+.card img {
+  width:120px;
+  height:120px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid var(--navy);
+  margin-bottom:1rem;
+  cursor:pointer;
+  transition:0.2s;
+}
+.card img:hover { transform: scale(1.05); }
+.card h3 {
+  margin-bottom:1rem;
+  font-size:1.3rem;
+  border-bottom:1px solid #eee;
+  padding-bottom:0.5rem;
+}
+.detail-item {
+  display:flex;
+  justify-content:space-between;
+  padding:0.6rem 1rem;
+  border-radius:8px;
+  background:#f9f9f9;
+  margin:0.6rem 0;
+  box-shadow: inset 2px 2px 6px #bebebe, inset -2px -2px 6px #ffffff;
+}
+.logout-btn {
+  margin-top:1rem;
+  padding:0.8rem 1.2rem;
+  background:var(--navy);
+  color:white;
+  border:none;
+  border-radius:12px;
+  font-size:1rem;
+  cursor:pointer;
+  width:100%;
+  transition:all 0.3s;
+}
+.logout-btn:hover { background:var(--success); color:white; }
+.bottom-nav {
+  position:fixed;
+  bottom:0;
+  left:0;
+  width:100%;
+  background:var(--navy);
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  padding:0.5rem 0;
+}
+.bottom-nav a { color:white; text-decoration:none; font-size:0.8rem; text-align:center; flex:1; }
+.bottom-nav i { display:block; font-size:1.2rem; margin-bottom:4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span id="teacherName">Teacher Name</span>
+  <span style="margin-left:auto;">Profile</span>
+</div>
+
+<div class="card">
+  <img src="teacher-pic.jpg" alt="Profile Picture" id="profilePic">
+  <input type="file" id="imageUpload" accept="image/*" style="display:none">
+
+  <h3 id="teacherFullName">Loading...</h3>
+
+  <div class="detail-item"><span>Teacher ID:</span> <span id="teacherId"></span></div>
+  <div class="detail-item"><span>Email:</span> <span id="email"></span></div>
+  <div class="detail-item"><span>Phone:</span> <span id="phone"></span></div>
+
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="bottom-nav">
+  <a href="T-dashboard.html"><i class="fas fa-home"></i>Home</a>
+  <a href="T-history.html"><i class="fas fa-clock"></i>History</a>
+  <a href="T-profile.html"><i class="fas fa-user"></i>Profile</a>
+</div>
+
+<script>
+const loggedInTeacher = JSON.parse(localStorage.getItem("loggedInTeacher"));
+if (!loggedInTeacher) { alert("No teacher logged in."); window.location.href = "index.html"; }
+
+document.getElementById("teacherName").textContent = loggedInTeacher.name;
+document.getElementById("teacherFullName").textContent = loggedInTeacher.name;
+document.getElementById("teacherId").textContent = loggedInTeacher.teacherId;
+document.getElementById("email").textContent = loggedInTeacher.email;
+document.getElementById("phone").textContent = loggedInTeacher.phone;
+
+const profilePic = document.getElementById("profilePic");
+const imageUpload = document.getElementById("imageUpload");
+profilePic.addEventListener("click", () => { imageUpload.click(); });
+imageUpload.addEventListener("change", () => {
+  const file = imageUpload.files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      profilePic.src = e.target.result;
+      loggedInTeacher.profilePic = e.target.result;
+      localStorage.setItem("loggedInTeacher", JSON.stringify(loggedInTeacher));
+    }
+    reader.readAsDataURL(file);
+  }
+});
+
+function logout() {
+  localStorage.removeItem("loggedInTeacher");
+  window.location.href = "/index.html";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Appointment App</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --midnight-indigo: #212842;
+  --pearl-ivory: #F5F0E6;
+  --text-dark: #1A1A1A;
+}
+
+body {
+  background: var(--pearl-ivory);
+  font-family: 'Poppins', sans-serif;
+  margin: 0; padding: 0;
+  color: var(--text-dark);
+}
+
+/* Navbar */
+.navbar {
+  background: var(--midnight-indigo);
+  color: var(--pearl-ivory);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(33,40,66,0.25);
+}
+.hamburger { font-size: 24px; cursor: pointer; margin-right: 15px; }
+.brand { font-size: 1.2rem; letter-spacing: 1px; }
+
+/* Sidebar */
+.sidebar {
+  position: fixed; top: 0; left: -250px; width: 250px; height: 100%;
+  background: var(--midnight-indigo); padding-top: 70px; transition: 0.3s;
+  z-index: 1000; box-shadow: 4px 0 12px rgba(33,40,66,0.3);
+}
+.sidebar a {
+  display: block; padding: 15px 20px; color: var(--pearl-ivory);
+  text-decoration: none; font-weight: 500; transition: 0.3s ease;
+}
+.sidebar a:hover { background: #2b3358; }
+
+/* Overlay */
+.overlay {
+  position: fixed; top:0; left:0; width:100%; height:100%;
+  background: rgba(33,40,66,0.5); display: none; z-index: 900;
+}
+
+/* Pages */
+.page { display: none; padding: 30px; }
+.page.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+
+/* Cards */
+.card {
+  background: #fff; padding: 2rem; border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(33,40,66,0.15);
+  max-width: 500px; margin: auto; text-align: center;
+}
+.card h2 { color: var(--midnight-indigo); margin-bottom: 1rem; font-size: 1.6rem; font-weight:700; }
+.input-box {
+  width: 90%; padding: 0.9rem; margin: 0.6rem 0;
+  border: 1px solid #ccc; border-radius: 10px;
+  font-size: 0.95rem; outline: none; transition:0.3s ease;
+}
+.input-box:focus { border-color: var(--midnight-indigo); box-shadow: 0 0 6px rgba(33,40,66,0.2); }
+.btn {
+  background: var(--midnight-indigo); color: var(--pearl-ivory);
+  border: none; padding: 0.9rem 1.2rem; font-size: 1rem;
+  font-weight: 600; border-radius: 12px; cursor: pointer; margin-top:1rem;
+  transition: 0.3s ease;
+}
+.btn:hover { background: #2b3358; }
+
+.teacher-card {
+  background-color: #fff; padding: 15px; border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(33,40,66,0.15); margin-top: 15px;
+}
+.teacher-name { font-weight:600; color: var(--midnight-indigo); }
+.time-slot { margin-top:5px; font-weight:500; color: green; }
+.reason-other-container { display: none; margin-top:10px; }
+
+@keyframes fadeIn { from {opacity:0; transform:translateY(15px);} to {opacity:1; transform:translateY(0);} }
+.notification-card {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  background: #fff;
+  border-left: 5px solid #27ae60;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  width: 250px;
+  display: none;
+  z-index: 2000;
+  animation: slideIn 0.5s ease;
+}
+.notification-card p { margin:0; font-size: 0.95rem; color: #212842; }
+@keyframes slideIn { from {opacity:0; transform:translateX(50px);} to {opacity:1; transform:translateX(0);} }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="hamburger" onclick="openSidebar()">☰</div>
+  <div class="brand">SchedulED</div>
+<div class="notification-icon" style="margin-left:auto; cursor:pointer;" onclick="toggleNotifications()">
+  🔔 <span class="notification-badge" id="notificationBadge" style="display:none;">0</span>
+</div>
+</div>
+
+<div class="notification-card" id="notificationCard">
+  <p id="notificationText"></p>
+</div>
+
+<div class="sidebar" id="sidebar">
+  <a href="/dashboard.html" onclick="showPage('dashboard')">Dashboard</a>
+  <a href="/history.html" onclick="showPage('history')">Appointment History</a>
+  <a href="profile.html" onclick="showPage('profile')">Profile</a>
+
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div id="dashboard" class="page active">
+  <div class="card">
+    <h2>Book Teacher Appointment</h2>
+    <select id="teacherSelect" class="input-box">
+      <option value="">--Select Teacher--</option>
+    </select>
+
+    <div id="teacherCard" class="teacher-card" style="display:none;">
+      <div class="teacher-name" id="teacherName"></div>
+      <div class="time-slot" id="timeSlot"></div>
+    </div>
+
+    <select id="reasonSelect" class="input-box">
+      <option value="">--Select Reason--</option>
+      <option value="Assignments">Assignments</option>
+      <option value="Practical">Practical</option>
+      <option value="Mini Project">Mini Project</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <div class="reason-other-container" id="otherReasonContainer">
+      <textarea id="otherReason" class="input-box" placeholder="Enter other reason..."></textarea>
+    </div>
+
+    <button id="bookBtn" class="btn">Book Appointment</button>
+  </div>
+</div>
+
+<div id="history" class="page">
+  <div class="card"><h2>Appointment History</h2><p>No history yet.</p></div>
+</div>
+
+<div id="profile" class="page">
+  <div class="card"><h2>Profile</h2><p>Student Profile Info</p></div>
+</div>
+
+
+<!-- <script>
+// Sidebar
+const sidebar = document.getElementById('sidebar'), overlay = document.getElementById('overlay');
+function openSidebar(){ sidebar.style.left='0'; overlay.style.display='block'; }
+function closeSidebar(){ sidebar.style.left='-250px'; overlay.style.display='none'; }
+
+// Page Navigation
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  closeSidebar();
+  if(id === "history") loadHistory();
+}
+
+// Elements
+const teacherSelect = document.getElementById('teacherSelect');
+const teacherCard = document.getElementById('teacherCard');
+const teacherNameEl = document.getElementById('teacherName');
+const timeSlotEl = document.getElementById('timeSlot');
+
+// Load teachers initially
+function loadTeachers() {
+  let teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  teachers = teachers.filter(t => t.name && t.name !== "Teacher Dashboard" && t.name !== "Unknown");
+
+  const currentValue = teacherSelect.value;
+  teacherSelect.innerHTML = '<option value="">--Select Teacher--</option>';
+  teachers.forEach(t => {
+    const option = document.createElement('option');
+    option.value = t.name;
+    option.textContent = t.name;
+    teacherSelect.appendChild(option);
+  });
+
+  if (currentValue) teacherSelect.value = currentValue;
+  updateTeacherCard();
+}
+
+// Show teacher details
+function updateTeacherCard() {
+  const teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  const selected = teachers.find(t => t.name === teacherSelect.value);
+  if (selected) {
+    teacherCard.style.display = 'block';
+    teacherNameEl.textContent = selected.name || 'Unknown';
+    if (selected.isAvailable && selected.start && selected.end) {
+      const labText = selected.lab ? ` (Lab ${selected.lab})` : '';
+      timeSlotEl.textContent = `Available Slot: ${selected.start} - ${selected.end}${labText}`;
+      timeSlotEl.style.color = 'green';
+    } else {
+      timeSlotEl.textContent = 'Currently not available';
+      timeSlotEl.style.color = 'red';
+    }
+  } else teacherCard.style.display = 'none';
+}
+
+teacherSelect.addEventListener('change', updateTeacherCard);
+
+// Reason handling
+const reasonSelect = document.getElementById('reasonSelect');
+const otherReasonContainer = document.getElementById('otherReasonContainer');
+reasonSelect.addEventListener('change', ()=>otherReasonContainer.style.display = (reasonSelect.value==='Other')?'block':'none');
+
+// Booking logic
+const bookBtn = document.getElementById('bookBtn');
+const loggedInStudent = JSON.parse(localStorage.getItem('loggedInStudent'));
+const students = JSON.parse(localStorage.getItem('students')) || [];
+let currentStudent = null;
+if (loggedInStudent && loggedInStudent.email) currentStudent = students.find(s => s.email === loggedInStudent.email);
+
+bookBtn.addEventListener('click', () => {
+  if (!currentStudent) { alert('Student not found. Please log in again.'); return; }
+  const teacherName = teacherSelect.value;
+  const reasonVal = reasonSelect.value;
+  const otherReason = document.getElementById('otherReason').value.trim();
+  const reason = reasonVal === 'Other' ? otherReason : reasonVal;
+  if (!teacherName || !reason) { alert('Please select a teacher and reason.'); return; }
+
+  const appointment = {
+    studentName: currentStudent.fullName || currentStudent.name || 'Unknown',
+    classDiv: `${currentStudent.year || 'N/A'} - ${currentStudent.division || 'N/A'}`,
+    teacherName, reason, date: new Date().toLocaleString(), status: 'pending'
+  };
+
+  let pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || [];
+  pendingRequests.push(appointment);
+  localStorage.setItem('pendingRequests', JSON.stringify(pendingRequests));
+
+  let studentAppointments = JSON.parse(localStorage.getItem('appointments')) || [];
+  studentAppointments.push(appointment);
+  localStorage.setItem('appointments', JSON.stringify(studentAppointments));
+
+  teacherSelect.value=''; reasonSelect.value=''; document.getElementById('otherReason').value=''; teacherCard.style.display='none'; otherReasonContainer.style.display='none';
+  loadHistory();
+});
+
+// Load appointment history
+function loadHistory(){
+  const historyPage = document.getElementById('history');
+  const card = historyPage.querySelector('.card');
+  const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+  const teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  
+  if(!appointments.length){ 
+    card.innerHTML = `<h2>Appointment History</h2><p>No history yet.</p>`; 
+    return; 
+  }
+
+  card.innerHTML = `<h2>Appointment History</h2>`;
+  appointments.slice().reverse().forEach(app => {
+    const teacher = teachers.find(t => t.name === app.teacherName);
+    const labText = teacher && teacher.lab ? ` (Lab ${teacher.lab})` : '';
+
+    const div = document.createElement('div');
+    div.className = 'teacher-card';
+    div.innerHTML = `
+      <div><b>Teacher:</b> ${app.teacherName}${labText}</div>
+      <div><b>Student:</b> ${app.studentName}</div>
+      <div><b>Class-Div:</b> ${app.classDiv}</div>
+      <div><b>Reason:</b> ${app.reason}</div>
+      <small><b>Date:</b> ${app.date}</small>
+    `;
+    card.appendChild(div);
+  });
+}
+
+// Notification card
+const notificationCard = document.getElementById('notificationCard');
+const notificationText = document.getElementById('notificationText');
+const notificationBadge = document.getElementById('notificationBadge');
+function toggleNotifications(){ notificationCard.style.display = notificationCard.style.display==='block' ? 'none' : 'block'; }
+function checkTeacherAvailability() {
+  const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+  const teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  let notifications = [];
+
+  appointments.forEach(app => {
+    if (app.status === 'pending') {
+      const teacher = teachers.find(t => t.name === app.teacherName);
+      if (teacher && teacher.isAvailable) {
+        app.status = 'notified';
+        const labText = teacher.lab ? ` (Lab ${teacher.lab})` : '';
+        const message = `${teacher.name} is now free${labText} — ${teacher.start} to ${teacher.end}`;
+        notifications.push(message);
+      }
+    }
+  });
+
+  // Save updated appointments
+  localStorage.setItem('appointments', JSON.stringify(appointments));
+
+  // If new notifications exist
+  if (notifications.length > 0) {
+    let index = 0;
+    notificationBadge.style.display = 'inline';
+    notificationBadge.textContent = notifications.length;
+
+    // Show notifications one by one
+    function showNextNotification() {
+      if (index < notifications.length) {
+        notificationText.textContent = notifications[index];
+        notificationCard.style.display = 'block';
+        index++;
+        setTimeout(() => {
+          notificationCard.style.display = 'none';
+          setTimeout(showNextNotification, 600); // gap before next notification
+        }, 4000);
+      } else {
+        notificationBadge.style.display = 'none';
+      }
+    }
+    showNextNotification();
+  }
+}
+
+
+  
+
+// ✅ Real-time update for teacher list and availability + notifications
+setInterval(() => {
+  loadTeachers();
+  checkTeacherAvailability();
+}, 3000);
+
+// Initialize once
+loadTeachers();
+</script> -->
+
+<!-- <script>
+// Sidebar
+const sidebar = document.getElementById('sidebar'),
+      overlay = document.getElementById('overlay');
+
+function openSidebar() {
+  sidebar.style.left = '0';
+  overlay.style.display = 'block';
+}
+function closeSidebar() {
+  sidebar.style.left = '-250px';
+  overlay.style.display = 'none';
+}
+
+// Page Navigation
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  closeSidebar();
+  if (id === "history") loadHistory();
+}
+
+// Elements
+const teacherSelect = document.getElementById('teacherSelect');
+const teacherCard = document.getElementById('teacherCard');
+const teacherNameEl = document.getElementById('teacherName');
+const timeSlotEl = document.getElementById('timeSlot');
+
+// Load Teachers
+function loadTeachers() {
+  let teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  teachers = teachers.filter(t => t.name && t.name !== "Teacher Dashboard" && t.name !== "Unknown");
+
+  const currentValue = teacherSelect.value;
+  teacherSelect.innerHTML = '<option value="">--Select Teacher--</option>';
+  teachers.forEach(t => {
+    const option = document.createElement('option');
+    option.value = t.name;
+    option.textContent = t.name;
+    teacherSelect.appendChild(option);
+  });
+
+  if (currentValue) teacherSelect.value = currentValue;
+  updateTeacherCard();
+}
+
+// Update Teacher Card
+function updateTeacherCard() {
+  const teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  const selected = teachers.find(t => t.name === teacherSelect.value);
+
+  if (selected) {
+    teacherCard.style.display = 'block';
+    teacherNameEl.textContent = selected.name || 'Unknown';
+    if (selected.isAvailable && selected.start && selected.end) {
+      const labText = selected.lab ? ` (Lab ${selected.lab})` : '';
+      timeSlotEl.textContent = `Available Slot: ${selected.start} - ${selected.end}${labText}`;
+      timeSlotEl.style.color = 'green';
+    } else {
+      timeSlotEl.textContent = 'Currently not available';
+      timeSlotEl.style.color = 'red';
+    }
+  } else {
+    teacherCard.style.display = 'none';
+  }
+}
+
+teacherSelect.addEventListener('change', updateTeacherCard);
+
+// Reason Handling
+const reasonSelect = document.getElementById('reasonSelect');
+const otherReasonContainer = document.getElementById('otherReasonContainer');
+reasonSelect.addEventListener('change', () => {
+  otherReasonContainer.style.display = (reasonSelect.value === 'Other') ? 'block' : 'none';
+});
+
+// Booking Logic
+const bookBtn = document.getElementById('bookBtn');
+const loggedInStudent = JSON.parse(localStorage.getItem('loggedInStudent'));
+const students = JSON.parse(localStorage.getItem('students')) || [];
+let currentStudent = null;
+if (loggedInStudent && loggedInStudent.email)
+  currentStudent = students.find(s => s.email === loggedInStudent.email);
+
+bookBtn.addEventListener('click', () => {
+  if (!currentStudent) {
+    alert('Student not found. Please log in again.');
+    return;
+  }
+
+  const teacherName = teacherSelect.value;
+  const reasonVal = reasonSelect.value;
+  const otherReason = document.getElementById('otherReason').value.trim();
+  const reason = reasonVal === 'Other' ? otherReason : reasonVal;
+
+  if (!teacherName || !reason) {
+    alert('Please select a teacher and reason.');
+    return;
+  }
+
+  const appointment = {
+    studentName: currentStudent.fullName || currentStudent.name || 'Unknown',
+    classDiv: `${currentStudent.year || 'N/A'} - ${currentStudent.division || 'N/A'}`,
+    teacherName,
+    reason,
+    date: new Date().toLocaleString(),
+    status: 'pending'
+  };
+
+  let pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || [];
+  pendingRequests.push(appointment);
+  localStorage.setItem('pendingRequests', JSON.stringify(pendingRequests));
+
+  let studentAppointments = JSON.parse(localStorage.getItem('appointments')) || [];
+  studentAppointments.push(appointment);
+  localStorage.setItem('appointments', JSON.stringify(studentAppointments));
+
+  teacherSelect.value = '';
+  reasonSelect.value = '';
+  document.getElementById('otherReason').value = '';
+  teacherCard.style.display = 'none';
+  otherReasonContainer.style.display = 'none';
+
+  loadHistory();
+});
+
+// Load Appointment History
+function loadHistory() {
+  const historyPage = document.getElementById('history');
+  const card = historyPage.querySelector('.card');
+  const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+  const teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+
+  if (!appointments.length) {
+    card.innerHTML = `<h2>Appointment History</h2><p>No history yet.</p>`;
+    return;
+  }
+
+  card.innerHTML = `<h2>Appointment History</h2>`;
+  appointments.slice().reverse().forEach(app => {
+    const teacher = teachers.find(t => t.name === app.teacherName);
+    const labText = teacher && teacher.lab ? ` (Lab ${teacher.lab})` : '';
+    const div = document.createElement('div');
+    div.className = 'teacher-card';
+    div.innerHTML = `
+      <div><b>Teacher:</b> ${app.teacherName}${labText}</div>
+      <div><b>Student:</b> ${app.studentName}</div>
+      <div><b>Class-Div:</b> ${app.classDiv}</div>
+      <div><b>Reason:</b> ${app.reason}</div>
+      <small><b>Date:</b> ${app.date}</small>
+    `;
+    card.appendChild(div);
+  });
+}
+
+// Notification Handling
+const notificationCard = document.getElementById('notificationCard');
+const notificationText = document.getElementById('notificationText');
+const notificationBadge = document.getElementById('notificationBadge');
+
+function toggleNotifications() {
+  notificationCard.style.display = notificationCard.style.display === 'block' ? 'none' : 'block';
+}
+
+function checkTeacherAvailability() {
+  const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+  const teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  let newNotifications = 0;
+
+  appointments.forEach(app => {
+    if (app.status === 'pending') {
+      const teacher = teachers.find(t => t.name === app.teacherName);
+      if (teacher && teacher.isAvailable) {
+        app.status = 'notified';
+        const labText = teacher.lab ? ` (Lab ${teacher.lab})` : '';
+        // ✅ Updated format exactly as requested
+        notificationText.textContent = `${teacher.name} is now available — ${teacher.start} to ${teacher.end}${labText}`;
+        notificationCard.style.display = 'block';
+        newNotifications++;
+      }
+    }
+  });
+
+  localStorage.setItem('appointments', JSON.stringify(appointments));
+
+  if (newNotifications > 0) {
+    notificationBadge.style.display = 'inline';
+    notificationBadge.textContent = newNotifications;
+    setTimeout(() => {
+      notificationCard.style.display = 'none';
+      notificationBadge.style.display = 'none';
+    }, 6000);
+  }
+}
+
+
+// Real-Time Refresh
+setInterval(() => {
+  loadTeachers();
+  checkTeacherAvailability();
+}, 3000);
+
+// Initialize
+loadTeachers();
+</script> -->
+
+
+<script>
+// Sidebar
+const sidebar = document.getElementById('sidebar'),
+      overlay = document.getElementById('overlay');
+
+function openSidebar() {
+  sidebar.style.left = '0';
+  overlay.style.display = 'block';
+}
+function closeSidebar() {
+  sidebar.style.left = '-250px';
+  overlay.style.display = 'none';
+}
+
+// Page Navigation
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  closeSidebar();
+  if (id === "history") loadHistory();
+}
+
+// Elements
+const teacherSelect = document.getElementById('teacherSelect');
+const teacherCard = document.getElementById('teacherCard');
+const teacherNameEl = document.getElementById('teacherName');
+const timeSlotEl = document.getElementById('timeSlot');
+
+// Load Teachers
+// Load Teachers
+function loadTeachers() {
+  let teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+
+  // Filter unique teachers by teacherId
+  const uniqueTeachersMap = {};
+  teachers.forEach(t => {
+    if (t.teacherId && !uniqueTeachersMap[t.teacherId]) {
+      uniqueTeachersMap[t.teacherId] = t;
+    }
+  });
+  teachers = Object.values(uniqueTeachersMap);
+
+  const currentValue = teacherSelect.value;
+  teacherSelect.innerHTML = '<option value="">--Select Teacher--</option>';
+  teachers.forEach(t => {
+    const option = document.createElement('option');
+    option.value = t.name;
+    option.textContent = t.name;
+    teacherSelect.appendChild(option);
+  });
+
+  if (currentValue) teacherSelect.value = currentValue;
+  updateTeacherCard();
+}
+
+// Update Teacher Card
+function updateTeacherCard() {
+  const teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  const selected = teachers.find(t => t.name === teacherSelect.value);
+
+  if (selected) {
+    teacherCard.style.display = 'block';
+    teacherNameEl.textContent = selected.name || 'Unknown';
+    if (selected.isAvailable && selected.start && selected.end) {
+      const labText = selected.lab ? ` (Lab ${selected.lab})` : '';
+      timeSlotEl.textContent = `Available Slot: ${selected.start} - ${selected.end}${labText}`;
+      timeSlotEl.style.color = 'green';
+    } else {
+      timeSlotEl.textContent = 'Currently not available';
+      timeSlotEl.style.color = 'red';
+    }
+  } else {
+    teacherCard.style.display = 'none';
+  }
+}
+
+teacherSelect.addEventListener('change', updateTeacherCard);
+
+// Reason Handling
+const reasonSelect = document.getElementById('reasonSelect');
+const otherReasonContainer = document.getElementById('otherReasonContainer');
+reasonSelect.addEventListener('change', () => {
+  otherReasonContainer.style.display = (reasonSelect.value === 'Other') ? 'block' : 'none';
+});
+
+// Booking Logic
+const bookBtn = document.getElementById('bookBtn');
+const loggedInStudent = JSON.parse(localStorage.getItem('loggedInStudent'));
+const students = JSON.parse(localStorage.getItem('students')) || [];
+let currentStudent = null;
+if (loggedInStudent && loggedInStudent.email)
+  currentStudent = students.find(s => s.email === loggedInStudent.email);
+
+bookBtn.addEventListener('click', () => {
+  if (!currentStudent) {
+    alert('Student not found. Please log in again.');
+    return;
+  }
+
+  const teacherName = teacherSelect.value;
+  const reasonVal = reasonSelect.value;
+  const otherReason = document.getElementById('otherReason').value.trim();
+  const reason = reasonVal === 'Other' ? otherReason : reasonVal;
+
+  if (!teacherName || !reason) {
+    alert('Please select a teacher and reason.');
+    return;
+  }
+
+  const appointment = {
+    studentName: currentStudent.fullName || currentStudent.name || 'Unknown',
+    classDiv: `${currentStudent.year || 'N/A'} - ${currentStudent.division || 'N/A'}`,
+    teacherName,
+    reason,
+    date: new Date().toLocaleString(),
+    status: 'pending'
+  };
+
+  let pendingRequests = JSON.parse(localStorage.getItem('pendingRequests')) || [];
+  pendingRequests.push(appointment);
+  localStorage.setItem('pendingRequests', JSON.stringify(pendingRequests));
+
+  let studentAppointments = JSON.parse(localStorage.getItem('appointments')) || [];
+  studentAppointments.push(appointment);
+  localStorage.setItem('appointments', JSON.stringify(studentAppointments));
+
+  teacherSelect.value = '';
+  reasonSelect.value = '';
+  document.getElementById('otherReason').value = '';
+  teacherCard.style.display = 'none';
+  otherReasonContainer.style.display = 'none';
+
+  loadHistory();
+});
+
+// Load Appointment History
+function loadHistory() {
+  const historyPage = document.getElementById('history');
+  const card = historyPage.querySelector('.card');
+  const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+  const teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+
+  if (!appointments.length) {
+    card.innerHTML = `<h2>Appointment History</h2><p>No history yet.</p>`;
+    return;
+  }
+
+  card.innerHTML = `<h2>Appointment History</h2>`;
+  appointments.slice().reverse().forEach(app => {
+    const teacher = teachers.find(t => t.name === app.teacherName);
+    const labText = teacher && teacher.lab ? ` (Lab ${teacher.lab})` : '';
+    const div = document.createElement('div');
+    div.className = 'teacher-card';
+    div.innerHTML = `
+      <div><b>Teacher:</b> ${app.teacherName}${labText}</div>
+      <div><b>Student:</b> ${app.studentName}</div>
+      <div><b>Class-Div:</b> ${app.classDiv}</div>
+      <div><b>Reason:</b> ${app.reason}</div>
+      <small><b>Date:</b> ${app.date}</small>
+    `;
+    card.appendChild(div);
+  });
+}
+
+// Notification Handling
+const notificationCard = document.getElementById('notificationCard');
+const notificationText = document.getElementById('notificationText');
+const notificationBadge = document.getElementById('notificationBadge');
+
+function toggleNotifications() {
+  notificationCard.style.display = notificationCard.style.display === 'block' ? 'none' : 'block';
+}
+
+function checkTeacherAvailability() {
+  const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+  const teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  let newNotifications = 0;
+
+  appointments.forEach(app => {
+    if (app.status === 'pending') {
+      const teacher = teachers.find(t => t.name === app.teacherName);
+      if (teacher && teacher.isAvailable) {
+        app.status = 'notified';
+        const labText = teacher.lab ? ` (Lab ${teacher.lab})` : '';
+        // ✅ Updated notification format
+        notificationText.textContent = `${teacher.name} is now available — ${teacher.start} to ${teacher.end}${labText}`;
+        notificationCard.style.display = 'block';
+        newNotifications++;
+      }
+    }
+  });
+
+  localStorage.setItem('appointments', JSON.stringify(appointments));
+
+  if (newNotifications > 0) {
+    notificationBadge.style.display = 'inline';
+    notificationBadge.textContent = newNotifications;
+    setTimeout(() => {
+      notificationCard.style.display = 'none';
+      notificationBadge.style.display = 'none';
+    }, 6000);
+  }
+}
+
+// Real-Time Refresh
+setInterval(() => {
+  loadTeachers();
+  checkTeacherAvailability();
+}, 3000);
+
+// Initialize
+loadTeachers();
+</script>
+
+</body>
+</html>

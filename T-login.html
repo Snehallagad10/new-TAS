@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Login</title>
+<style>
+:root {
+  --navy: #1f2a44;
+  --background: #f5f6fa;
+  --card-bg: #ffffff;
+  --text-dark: #2c3e50;
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  --hover-bg: #f5f0e6; /* beige */
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--background);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Neumorphic card */
+.card {
+  width: 400px;
+  border-radius: 50px;
+  background: #e0e0e0;
+  box-shadow: 20px 20px 60px #bebebe,
+              -20px -20px 60px #ffffff;
+  padding: 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 10px 10px 30px #bebebe,
+              -10px -10px 30px #ffffff;
+}
+
+h2 {
+  text-align: center;
+  color: var(--navy);
+  margin-bottom: 1.5rem;
+}
+
+.field {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.input-field {
+  width: 90%;
+  padding: 0.8rem;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: border 0.3s ease;
+}
+
+.input-field:focus {
+  border: 2px solid var(--navy);
+}
+
+.button1, .button2 {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
+  background: var(--navy);
+  color: #fff;
+}
+
+.button1:hover, .button2:hover {
+  background: var(--hover-bg);
+  color: var(--navy);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 500px) {
+  .card {
+    width: 90%;
+    padding: 1.5rem;
+  }
+  .input-field {
+    padding: 0.7rem;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Teacher Login</h2>
+  <form id="loginForm">
+    <div class="field">
+      <input type="text" id="loginEmail" class="input-field" placeholder="Email" required>
+    </div>
+    <div class="field">
+      <input type="password" id="loginPassword" class="input-field" placeholder="Password" required>
+    </div>
+    <button type="submit" class="button1">Login</button>
+  </form>
+  <button class="button2" onclick="window.location.href='/Teacher/T-register.html'">Register</button>
+</div>
+
+<script>
+// Predefined teacher credentials (so login works without registering)
+if(!localStorage.getItem('teachers')) {
+  const defaultTeachers = [
+    { email: "teacher1@example.com", password: "123456", name: "Teacher One" },
+    { email: "teacher2@example.com", password: "abcdef", name: "Teacher Two" }
+  ];
+  localStorage.setItem('teachers', JSON.stringify(defaultTeachers));
+}
+
+document.getElementById('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+
+  let teachers = JSON.parse(localStorage.getItem('teachers')) || [];
+  let teacher = teachers.find(t => t.email === email && t.password === password);
+
+  if(teacher){
+    localStorage.setItem('loggedInTeacher', JSON.stringify(teacher));
+    alert('Login successful!');
+    window.location.href = "/Teacher/T-dashboard.html";
+  } else {
+    alert('Invalid email or password');
+  }
+});
+</script>
+
+
+
+</body>
+</html>

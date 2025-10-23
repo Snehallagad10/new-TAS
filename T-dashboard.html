@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {--navy:#1f2a44;--background:#f5f6fa;--card-bg:#fff;--text-dark:#2c3e50;--success:#27ae60;--shadow:0 4px 12px rgba(0,0,0,0.08);}
+body {margin:0; font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; background:var(--background); color:var(--text-dark); padding-bottom:70px;}
+.header {display:flex; align-items:center; padding:1rem; background:var(--navy); color:white; font-weight:bold; font-size:1.2rem;}
+.card {background:var(--card-bg); border-radius:12px; box-shadow:var(--shadow); padding:1.5rem; margin:1.5rem auto; width:90%; max-width:550px;}
+.card h3 {margin-bottom:1rem; font-size:1.2rem; border-bottom:1px solid #eee; padding-bottom:0.5rem;}
+.toggle-container {display:flex; justify-content:space-between; align-items:center;}
+.toggle {width:50px; height:24px; background:#ccc; border-radius:12px; position:relative; cursor:pointer; transition:0.3s;}
+.toggle::before {content:''; position:absolute; top:2px; left:2px; width:20px; height:20px; background:#fff; border-radius:50%; transition:0.3s;}
+.toggle.active {background:var(--success);}
+.toggle.active::before {transform:translateX(26px);}
+select {margin:0 4px; padding:6px; border-radius:6px; border:1px solid #ddd; font-size:0.95rem;}
+.time-display {margin-top:1rem; font-size:1rem; font-weight:500; color:var(--success);}
+.request {display:flex; justify-content:space-between; align-items:center; padding:0.8rem 0; border-bottom:1px solid #eee;}
+.request:last-child {border-bottom:none;}
+.tick {width:22px; height:22px; border:2px solid var(--success); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--success); font-weight:bold; transition:0.2s;}
+.tick:hover {background:var(--success); color:white;}
+.to-label {font-weight:bold; font-size:20px;}
+#timePicker {display:none; margin-top:20px;}
+.bottom-nav {position:fixed; bottom:0; left:0; width:100%; background:var(--navy); display:flex; justify-content:space-around; align-items:center; padding:0.5rem 0;}
+.bottom-nav a {color:white; text-decoration:none; font-size:0.8rem; text-align:center; flex:1;}
+.bottom-nav i {display:block; font-size:1.2rem; margin-bottom:4px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span id="teacherName"></span>
+  <span style="margin-left:auto;">Dashboard</span>
+</div>
+
+<div class="card">
+  <h3>Appointment Status</h3>
+  <div class="toggle-container">
+    <span>Set Availability</span>
+    <div class="toggle" id="availabilityToggle"></div>
+  </div>
+ <div class="time-picker" id="timePicker">
+<label class="to-label">To:
+<select id="endHour"></select> :
+<select id="endMinute"></select>
+<select id="endAmPm"></select>
+</label>
+
+<label style="margin-left: 12px; font-weight: 500;">
+Lab No:
+<input type="text" id="labNumber" placeholder="e.g. Lab 301" style="padding:5px; border:1px solid #ccc; border-radius:6px; width:100px;">
+</label>
+
+</div>
+<div class="time-display" id="timeDisplay"></div>
+</div>
+
+<div class="card">
+  <h3>Pending Requests</h3>
+  <div id="requests"></div>
+</div>
+
+<div class="bottom-nav">
+  <a href="T-dashboard.html"><i class="fas fa-home"></i>Home</a>
+  <a href="T-history.html"><i class="fas fa-clock"></i>History</a>
+  <a href="T-profile.html"><i class="fas fa-user"></i>Profile</a>
+</div>
+
+<!-- <script>
+const loggedInTeacher = JSON.parse(localStorage.getItem("loggedInTeacher"));
+if(!loggedInTeacher){ alert("No teacher logged in."); window.location.href="index.html"; }
+document.getElementById('teacherName').textContent = loggedInTeacher.name;
+
+const toggle = document.getElementById("availabilityToggle");
+const timePicker = document.getElementById("timePicker");
+const timeDisplay = document.getElementById("timeDisplay");
+const endHour = document.getElementById("endHour");
+const endMinute = document.getElementById("endMinute");
+const endAmPm = document.getElementById("endAmPm");
+const labInput = document.getElementById("labNumber");
+let fromTime=null, toTime=null, countdownInterval;
+
+for(let i=1;i<=12;i++) endHour.add(new Option(i,i));
+["00","15","30","45"].forEach(m=>endMinute.add(new Option(m,m)));
+["AM","PM"].forEach(p=>endAmPm.add(new Option(p,p)));
+
+function formatTime(date){ let h=date.getHours(), m=date.getMinutes(); const ampm = h>=12?"PM":"AM"; h=h%12; if(h===0) h=12; return `${h}:${m.toString().padStart(2,"0")} ${ampm}`; }
+function buildToTime(){ let h=parseInt(endHour.value), m=parseInt(endMinute.value); const ampm=endAmPm.value; if(ampm==="PM" && h!==12) h+=12; if(ampm==="AM" && h===12) h=0; let end=new Date(fromTime); end.setHours(h,m,0,0); if(end<=fromTime) end.setHours(end.getHours()+12); return end; }
+
+function saveAvailability(){
+  const teachers=JSON.parse(localStorage.getItem("teachers"))||[];
+  const idx=teachers.findIndex(t=>t.name===loggedInTeacher.name && t.teacherId===loggedInTeacher.teacherId);
+  const startTime=fromTime.getTime(), endTime=toTime.getTime();
+  const labNumber = labInput.value.trim();
+  if(idx!==-1){
+    teachers[idx]={...teachers[idx], start:formatTime(fromTime), end:formatTime(toTime), startTime, endTime, lab:labNumber||"", isAvailable:true};
+  } else {
+    teachers.push({...loggedInTeacher, start:formatTime(fromTime), end:formatTime(toTime), startTime, endTime, lab:labNumber||"", isAvailable:true});
+  }
+  localStorage.setItem("teachers",JSON.stringify(teachers));
+}
+
+function updateTimeDisplay() {
+  toTime = buildToTime();
+  const labNumber = labInput.value.trim();
+  const labText = labNumber ? ` (Lab ${labNumber})` : "";
+  timeDisplay.textContent = `Available Slot: ${formatTime(fromTime)} - ${formatTime(toTime)}${labText}`;
+  saveAvailability();
+
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    if (new Date() >= toTime) {
+      toggle.classList.remove("active");
+      timePicker.style.display = "none";
+      timeDisplay.textContent = "Availability ended";
+      clearInterval(countdownInterval);
+      let teachers = JSON.parse(localStorage.getItem("teachers")) || [];
+      teachers = teachers.map(t => t.name === loggedInTeacher.name ? { ...t, isAvailable: false } : t);
+      localStorage.setItem("teachers", JSON.stringify(teachers));
+    }
+  }, 1000);
+}
+
+const savedTeachers=JSON.parse(localStorage.getItem("teachers"))||[];
+const savedTeacher=savedTeachers.find(t=>t.name===loggedInTeacher.name && t.isAvailable);
+if(savedTeacher){
+  toggle.classList.add("active");
+  fromTime=new Date(savedTeacher.startTime);
+  toTime=new Date(savedTeacher.endTime);
+  endHour.value = toTime.getHours()%12 || 12;
+  endMinute.value = toTime.getMinutes().toString().padStart(2,"0");
+  endAmPm.value = toTime.getHours()>=12?"PM":"AM";
+  labInput.value = savedTeacher.lab || "";
+  timePicker.style.display="block";
+  updateTimeDisplay();
+}
+
+toggle.addEventListener("click",()=>{
+  toggle.classList.toggle("active");
+  if(toggle.classList.contains("active")){
+    fromTime=new Date();
+    timePicker.style.display="block";
+    endAmPm.value=new Date().getHours()>=12?"PM":"AM";
+    updateTimeDisplay();
+  } else {
+    timePicker.style.display="none";
+    timeDisplay.textContent="";
+    clearInterval(countdownInterval);
+    let teachers=JSON.parse(localStorage.getItem("teachers"))||[];
+    teachers=teachers.map(t=>t.name===loggedInTeacher.name?{...t,isAvailable:false}:t);
+    localStorage.setItem("teachers",JSON.stringify(teachers));
+  }
+});
+[endHour,endMinute,endAmPm,labInput].forEach(el=>el.addEventListener("change",updateTimeDisplay));
+
+const requestsContainer=document.getElementById("requests");
+function loadStudentAppointments(){
+  const allAppointments=JSON.parse(localStorage.getItem("appointments"))||[];
+  const doneAppointments=JSON.parse(localStorage.getItem("doneRequests"))||[];
+  const myAppointments=allAppointments.filter(app=>app.teacherName===loggedInTeacher.name&&!doneAppointments.some(d=>d.bookedTime===app.date));
+  requestsContainer.innerHTML="";
+  if(myAppointments.length===0){requestsContainer.innerHTML="<p>No pending requests.</p>"; return;}
+  myAppointments.forEach(app=>{
+    const div=document.createElement("div");
+    div.className="request";
+    div.innerHTML=`<span><b>${app.studentName} (${app.classDiv})</b><br><i>${app.reason}</i><br><small>${app.date}</small></span><div class="tick">✓</div>`;
+    div.querySelector(".tick").addEventListener("click",()=>{
+      const doneAppointments=JSON.parse(localStorage.getItem("doneRequests"))||[];
+      doneAppointments.push({teacher:app.teacherName,studentName:app.studentName,studentClass:app.classDiv,reason:app.reason,bookedTime:app.date,markedDoneAt:new Date().toLocaleString()});
+      localStorage.setItem("doneRequests",JSON.stringify(doneAppointments));
+      loadStudentAppointments();
+    });
+    requestsContainer.appendChild(div);
+  });
+}
+
+loadStudentAppointments();
+setInterval(loadStudentAppointments,5000);
+
+</script> -->
+
+<script>
+const loggedInTeacher = JSON.parse(localStorage.getItem("loggedInTeacher"));
+if (!loggedInTeacher) {
+  alert("No teacher logged in.");
+  window.location.href = "index.html";
+}
+document.getElementById("teacherName").textContent = loggedInTeacher.name;
+
+const toggle = document.getElementById("availabilityToggle");
+const timePicker = document.getElementById("timePicker");
+const timeDisplay = document.getElementById("timeDisplay");
+const endHour = document.getElementById("endHour");
+const endMinute = document.getElementById("endMinute");
+const endAmPm = document.getElementById("endAmPm");
+const labInput = document.getElementById("labNumber");
+let fromTime = null, toTime = null, countdownInterval;
+
+for (let i = 1; i <= 12; i++) endHour.add(new Option(i, i));
+["00", "15", "30", "45"].forEach((m) => endMinute.add(new Option(m, m)));
+["AM", "PM"].forEach((p) => endAmPm.add(new Option(p, p)));
+
+function formatTime(date) {
+  let h = date.getHours(),
+    m = date.getMinutes();
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m.toString().padStart(2, "0")} ${ampm}`;
+}
+
+function buildToTime() {
+  let h = parseInt(endHour.value),
+    m = parseInt(endMinute.value);
+  const ampm = endAmPm.value;
+  if (ampm === "PM" && h !== 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  const end = new Date(fromTime);
+  end.setHours(h, m, 0, 0);
+  if (end <= fromTime) end.setHours(end.getHours() + 12);
+  return end;
+}
+
+function saveAvailability() {
+  const teachers = JSON.parse(localStorage.getItem("teachers")) || [];
+  const idx = teachers.findIndex(
+    (t) =>
+      t.name === loggedInTeacher.name &&
+      t.teacherId === loggedInTeacher.teacherId
+  );
+  const startTime = fromTime.getTime(),
+    endTime = toTime.getTime();
+  const labNumber = labInput.value.trim();
+  if (idx !== -1) {
+    teachers[idx] = {
+      ...teachers[idx],
+      start: formatTime(fromTime),
+      end: formatTime(toTime),
+      startTime,
+      endTime,
+      lab: labNumber || "",
+      isAvailable: true,
+    };
+  } else {
+    teachers.push({
+      ...loggedInTeacher,
+      start: formatTime(fromTime),
+      end: formatTime(toTime),
+      startTime,
+      endTime,
+      lab: labNumber || "",
+      isAvailable: true,
+    });
+  }
+  localStorage.setItem("teachers", JSON.stringify(teachers));
+}
+
+function updateTimeDisplay(skipImmediateEndCheck = false) {
+  toTime = buildToTime();
+  const labNumber = labInput.value.trim();
+  const labText = labNumber ? ` (Lab ${labNumber})` : "";
+  timeDisplay.textContent = `Available Slot: ${formatTime(fromTime)} - ${formatTime(
+    toTime
+  )}${labText}`;
+  saveAvailability();
+
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
+    if (new Date() >= toTime) {
+      endAvailability();
+    }
+  }, 1000);
+
+  // prevent immediate reset on page load
+  if (!skipImmediateEndCheck && new Date() >= toTime) {
+    endAvailability();
+  }
+}
+
+function endAvailability() {
+  toggle.classList.remove("active");
+  timePicker.style.display = "none";
+  timeDisplay.textContent = "Availability ended";
+  clearInterval(countdownInterval);
+  let teachers = JSON.parse(localStorage.getItem("teachers")) || [];
+  teachers = teachers.map((t) =>
+    t.name === loggedInTeacher.name ? { ...t, isAvailable: false } : t
+  );
+  localStorage.setItem("teachers", JSON.stringify(teachers));
+}
+
+// Restore previous availability after refresh
+window.addEventListener("load", () => {
+  const teachers = JSON.parse(localStorage.getItem("teachers")) || [];
+  const savedTeacher = teachers.find((t) => t.name === loggedInTeacher.name);
+  if (savedTeacher && savedTeacher.isAvailable) {
+    fromTime = new Date(savedTeacher.startTime);
+    toTime = new Date(savedTeacher.endTime);
+
+    if (new Date() < toTime) {
+      toggle.classList.add("active");
+      timePicker.style.display = "block";
+      endHour.value = (toTime.getHours() % 12) || 12;
+      endMinute.value = toTime.getMinutes().toString().padStart(2, "0");
+      endAmPm.value = toTime.getHours() >= 12 ? "PM" : "AM";
+      labInput.value = savedTeacher.lab || "";
+      updateTimeDisplay(true);
+    } else {
+      endAvailability();
+    }
+  }
+});
+
+// Toggle logic
+toggle.addEventListener("click", () => {
+  toggle.classList.toggle("active");
+  if (toggle.classList.contains("active")) {
+    fromTime = new Date();
+    timePicker.style.display = "block";
+    endAmPm.value = new Date().getHours() >= 12 ? "PM" : "AM";
+    updateTimeDisplay();
+  } else {
+    endAvailability();
+  }
+});
+
+[endHour, endMinute, endAmPm, labInput].forEach((el) =>
+  el.addEventListener("change", () => updateTimeDisplay())
+);
+
+// Requests section
+const requestsContainer = document.getElementById("requests");
+function loadStudentAppointments() {
+  const allAppointments = JSON.parse(localStorage.getItem("appointments")) || [];
+  const doneAppointments = JSON.parse(localStorage.getItem("doneRequests")) || [];
+  const myAppointments = allAppointments.filter(
+    (app) =>
+      app.teacherName === loggedInTeacher.name &&
+      !doneAppointments.some((d) => d.bookedTime === app.date)
+  );
+  requestsContainer.innerHTML = "";
+  if (myAppointments.length === 0) {
+    requestsContainer.innerHTML = "<p>No pending requests.</p>";
+    return;
+  }
+  myAppointments.forEach((app) => {
+    const div = document.createElement("div");
+    div.className = "request";
+    div.innerHTML = `<span><b>${app.studentName} (${app.classDiv})</b><br><i>${app.reason}</i><br><small>${app.date}</small></span><div class="tick">✓</div>`;
+    div.querySelector(".tick").addEventListener("click", () => {
+      const doneAppointments =
+        JSON.parse(localStorage.getItem("doneRequests")) || [];
+      doneAppointments.push({
+        teacher: app.teacherName,
+        studentName: app.studentName,
+        studentClass: app.classDiv,
+        reason: app.reason,
+        bookedTime: app.date,
+        markedDoneAt: new Date().toLocaleString(),
+      });
+      localStorage.setItem("doneRequests", JSON.stringify(doneAppointments));
+      loadStudentAppointments();
+    });
+    requestsContainer.appendChild(div);
+  });
+}
+
+loadStudentAppointments();
+setInterval(loadStudentAppointments, 5000);
+</script>
+
+</body>
+</html>

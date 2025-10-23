@@ -1,0 +1,132 @@
+
+    :root {
+  --midnight-indigo: #212842;
+  --pearl-ivory: #F5F0E6; /* softer than vanilla cream */
+  --text-dark: #1A1A1A;
+}
+
+/* General body */
+body {
+  background: var(--pearl-ivory);
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+/* Login container */
+.login-container {
+  background: #fff;
+  padding: 2.5rem 2rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(33, 40, 66, 0.15);
+  text-align: center;
+  width: 100%;
+  max-width: 380px;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Title */
+.login-container h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--midnight-indigo);
+  margin-bottom: 0.5rem;
+  letter-spacing: 1px;
+}
+
+.login-container p {
+  font-size: 0.95rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+/* Role switch buttons */
+.role-switch {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--midnight-indigo);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.role-switch button {
+  flex: 1;
+  padding: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--midnight-indigo);
+  transition: 0.3s ease;
+}
+
+.role-switch button.active {
+  background: var(--midnight-indigo);
+  color: var(--pearl-ivory);
+}
+
+/* Input fields */
+.input-box {
+  width: 90%;
+  padding: 0.9rem;
+  margin: 0.6rem 0;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: 0.3s ease;
+}
+
+.input-box:focus {
+  border-color: var(--midnight-indigo);
+  box-shadow: 0 0 6px rgba(33, 40, 66, 0.2);
+}
+
+/* Login button */
+.login-btn {
+  width: 100%;
+  background: var(--midnight-indigo);
+  color: var(--pearl-ivory);
+  border: none;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 1.2rem;
+  transition: 0.3s ease;
+}
+
+.login-btn:hover {
+  background: #2b3358;
+}
+
+/* Register link */
+.register-link {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+.register-link a {
+  color: var(--midnight-indigo);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
