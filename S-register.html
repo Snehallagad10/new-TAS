@@ -102,7 +102,7 @@
     localStorage.setItem("students", JSON.stringify(students));
 
     // Save in Firebase
-    const key = email.replace('.', '_');
+   const key = email.replace(/[.#$/\[\]@]/g, "_");
     db.ref('students/' + key).set(student)
       .then(() => {
         alert("Registration successful! Saved in Firebase and localStorage.");
@@ -116,3 +116,4 @@
 </script>
 </body>
 </html>
+
