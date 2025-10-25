@@ -119,10 +119,11 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
   let teachers = JSON.parse(localStorage.getItem("teachers")) || [];
 
   // Check if teacher already exists
- const exists = teachers.some(t => 
-    t.teacherId.toLowerCase() === teacher.teacherId.toLowerCase() ||
-    t.email.toLowerCase() === teacher.email.toLowerCase()
+const exists = teachers.some(t =>
+  (t.teacherId && t.teacherId.toLowerCase() === teacher.teacherId.toLowerCase()) ||
+  (t.email && t.email.toLowerCase() === teacher.email.toLowerCase())
 );
+
 
   if (exists) {
     alert("Teacher ID or Email already registered.");
@@ -137,7 +138,7 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
   const key = teacher.email.toLowerCase().replace(/[.#$/\[\]@]/g, "_");
   db.ref('teachers/' + key).set(teacher)
     .then(() => {
-      alert("Registration successful! Saved in Firebase and localStorage.");
+      alert("Registration successful!");
       window.location.href = "index.html";
     })
     .catch(err => {
@@ -149,4 +150,5 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
 
 </body>
 </html>
+
 
