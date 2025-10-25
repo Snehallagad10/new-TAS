@@ -89,20 +89,20 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // Sync old teachers from localStorage to Firebase (once)
-function syncOldTeachers() {
-  const oldTeachers = JSON.parse(localStorage.getItem("teachers")) || [];
-  oldTeachers.forEach(t => {
-    const key = t.email.replace('.', '_');
-    db.ref('teachers/' + key).once('value', snapshot => {
-      if (!snapshot.exists()) {
-        db.ref('teachers/' + key).set(t)
-          .then(() => console.log(`Old teacher synced: ${t.email}`))
-          .catch(err => console.error(err));
-      }
-    });
-  });
-}
-syncOldTeachers();
+// function syncOldTeachers() {
+//   const oldTeachers = JSON.parse(localStorage.getItem("teachers")) || [];
+//   oldTeachers.forEach(t => {
+//     const key = t.email.replace('.', '_');
+//     db.ref('teachers/' + key).once('value', snapshot => {
+//       if (!snapshot.exists()) {
+//         db.ref('teachers/' + key).set(t)
+//           .then(() => console.log(`Old teacher synced: ${t.email}`))
+//           .catch(err => console.error(err));
+//       }
+//     });
+//   });
+// }
+// syncOldTeachers();
 
 // Handle new teacher registration
 document.getElementById("registerForm").addEventListener("submit", function(e) {
@@ -119,7 +119,11 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
   let teachers = JSON.parse(localStorage.getItem("teachers")) || [];
 
   // Check if teacher already exists
-  const exists = teachers.some(t => t.teacherId === teacher.teacherId || t.email === teacher.email);
+ const exists = teachers.some(t => 
+    t.teacherId.toLowerCase() === teacher.teacherId.toLowerCase() ||
+    t.email.toLowerCase() === teacher.email.toLowerCase()
+);
+
   if (exists) {
     alert("Teacher ID or Email already registered.");
     return;
@@ -130,7 +134,7 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
   localStorage.setItem("teachers", JSON.stringify(teachers));
 
   // Save in Firebase
-  const key = teacher.email.replace('.', '_');
+  const key = teacher.email.toLowerCase().replace(/[.#$/\[\]@]/g, "_");
   db.ref('teachers/' + key).set(teacher)
     .then(() => {
       alert("Registration successful! Saved in Firebase and localStorage.");
@@ -145,3 +149,4 @@ document.getElementById("registerForm").addEventListener("submit", function(e) {
 
 </body>
 </html>
+
