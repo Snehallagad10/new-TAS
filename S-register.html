@@ -59,21 +59,21 @@
   const db = firebase.database();
 
   // 3️⃣ Sync old students from localStorage to Firebase (only once)
-  function syncOldStudents() {
-    const oldStudents = JSON.parse(localStorage.getItem("students")) || [];
-    oldStudents.forEach(student => {
-      const key = student.email.replace('.', '_'); 
-      db.ref('students/' + key).once('value', snapshot => {
-        if (!snapshot.exists()) {
-          db.ref('students/' + key).set(student)
-            .then(() => console.log(`Old student synced: ${student.email}`))
-            .catch(err => console.error(err));
-        }
-      });
-    });
-  }
+  // function syncOldStudents() {
+  //   const oldStudents = JSON.parse(localStorage.getItem("students")) || [];
+  //   oldStudents.forEach(student => {
+  //     const key = student.email.replace('.', '_'); 
+  //     db.ref('students/' + key).once('value', snapshot => {
+  //       if (!snapshot.exists()) {
+  //         db.ref('students/' + key).set(student)
+  //           .then(() => console.log(`Old student synced: ${student.email}`))
+  //           .catch(err => console.error(err));
+  //       }
+  //     });
+  //   });
+  // }
 
-  syncOldStudents();
+  // syncOldStudents();
 
   // 4️⃣ Handle new student registration
   document.getElementById("registerForm").addEventListener("submit", function(event) {
@@ -89,11 +89,17 @@
 
     let students = JSON.parse(localStorage.getItem("students")) || [];
 
-    const exists = students.some(s => s.uidNumber === uidNumber || s.email === email);
-    if (exists) {
-      alert("UID or Email already registered.");
-      return;
-    }
+    // const exists = students.some(s => s.uidNumber === uidNumber || s.email === email);
+    // if (exists) {
+    //   alert("UID or Email already registered.");
+    //   return;
+    // }
+
+    const exists = students.some(s => 
+    s.uidNumber.toLowerCase() === uidNumber.toLowerCase() || 
+    s.email.toLowerCase() === email.toLowerCase()
+);
+
 
     const student = { fullName, uidNumber, email, year, division, phone, password };
 
@@ -102,7 +108,7 @@
     localStorage.setItem("students", JSON.stringify(students));
 
     // Save in Firebase
-   const key = email.replace(/[.#$/\[\]@]/g, "_");
+   const key = email.toLowerCase().replace(/[.#$/\[\]@]/g, "_");
     db.ref('students/' + key).set(student)
       .then(() => {
         alert("Registration successful! Saved in Firebase and localStorage.");
@@ -116,4 +122,5 @@
 </script>
 </body>
 </html>
+
 
